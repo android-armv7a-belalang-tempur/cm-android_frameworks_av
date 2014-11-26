@@ -66,6 +66,7 @@ LOCAL_SRC_FILES:=                         \
         ExtendedUtils.cpp                 \
         ExtendedStats.cpp                 \
         APE.cpp                           \
+        FFMPEGSoftCodec.cpp               \
 
 LOCAL_C_INCLUDES:= \
         $(TOP)/frameworks/av/include/media/ \
@@ -117,6 +118,10 @@ ifeq ($(BOARD_USES_LEGACY_ALSA_AUDIO),true)
    LOCAL_SRC_FILES += LPAPlayerALSA.cpp TunnelPlayer.cpp
 endif
 endif
+endif
+
+ifeq ($(TARGET_BOARD_PLATFORM),omap4)
+LOCAL_CFLAGS := -DBOARD_CANT_REALLOCATE_OMX_BUFFERS
 endif
 
 #QTI FLAC Decoder
