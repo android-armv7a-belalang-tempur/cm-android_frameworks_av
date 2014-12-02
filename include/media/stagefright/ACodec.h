@@ -237,7 +237,7 @@ private:
     void signalSubmitOutputMetaDataBufferIfEOS_workaround();
     status_t allocateOutputBuffersFromNativeWindow();
 #ifdef USE_SAMSUNG_COLORFORMAT
- void setNativeWindowColorFormat(OMX_COLOR_FORMATTYPE &eNativeColorFormat);
+    void setNativeWindowColorFormat(OMX_COLOR_FORMATTYPE &eNativeColorFormat);
 #endif
     status_t cancelBufferToNativeWindow(BufferInfo *info);
     status_t freeOutputBuffersNotOwnedByComponent();
