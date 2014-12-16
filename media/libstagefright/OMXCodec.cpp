@@ -57,13 +57,13 @@
 
 #include "include/avc_utils.h"
 
+#include <media/stagefright/ExtendedCodec.h>
 #include <media/stagefright/FFMPEGSoftCodec.h>
 
 #ifdef ENABLE_AV_ENHANCEMENTS
 #include <QCMediaDefs.h>
 #include <QCMetaData.h>
 #include <QOMX_AudioExtensions.h>
-#include <media/stagefright/ExtendedCodec.h>
 #endif
 
 #ifdef QTI_FLAC_DECODER
@@ -466,12 +466,10 @@ sp<MediaSource> OMXCodec::Create(
             return softwareCodec;
         }
 
-#ifdef ENABLE_AV_ENHANCEMENTS
         const char* ext_componentName = ExtendedCodec::overrideComponentName(quirks, meta, mime, createEncoder);
         if(ext_componentName != NULL) {
           componentName = ext_componentName;
         }
-#endif
 
         ALOGV("Attempting to allocate OMX node '%s'", componentName);
 
@@ -1010,7 +1008,10 @@ status_t OMXCodec::setVideoPortFormatType(
 }
 
 #ifdef USE_SAMSUNG_COLORFORMAT
-#define ALIGN(x, a) (((x) + (a) - 1) & ~((a) - 1))
+#define ALIGN_TO_8KB(x)   ((((x) + (1 << 13) - 1) >> 13) << 13)
+#define ALIGN_TO_32B(x)   ((((x) + (1 <<  5) - 1) >>  5) <<  5)
+#define ALIGN_TO_128B(x)  ((((x) + (1 <<  7) - 1) >>  7) <<  7)
+#define ALIGN(x, a)       (((x) + (a) - 1) & ~((a) - 1))
 #endif
 
 static size_t getFrameSize(
@@ -1042,8 +1043,8 @@ static size_t getFrameSize(
         case OMX_SEC_COLOR_FormatNV12LVirtualAddress:
             return ALIGN((ALIGN(width, 16) * ALIGN(height, 16)), 2048) + ALIGN((ALIGN(width, 16) * ALIGN(height >> 1, 8)), 2048);
         case OMX_SEC_COLOR_FormatNV12Tiled:
-            static unsigned int frameBufferYSise = calc_plane(width, height);
-            static unsigned int frameBufferUVSise = calc_plane(width, height >> 1);
+            static unsigned int frameBufferYSise = ALIGN_TO_8KB(ALIGN_TO_128B(width) * ALIGN_TO_32B(height));
+            static unsigned int frameBufferUVSise = ALIGN_TO_8KB(ALIGN_TO_128B(width) * ALIGN_TO_32B(height/2));
             return (frameBufferYSise + frameBufferUVSise);
 #endif
         default:
